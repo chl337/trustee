@@ -4,6 +4,11 @@
 
 //! KBS API server
 
+#[cfg(feature = "tls")]
+extern crate rustls_pemfile;
+#[cfg(feature = "tls")]
+extern crate rustls;
+
 #[cfg(feature = "as")]
 pub mod attestation;
 

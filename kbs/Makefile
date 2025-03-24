@@ -32,7 +32,7 @@ endif
 
 CLI_FEATURES ?=
 ATTESTER ?=
-FEATURES ?=
+FEATURES ?= tls
 
 COCO_AS_INTEGRATION_TYPE ?= builtin
 
@@ -60,7 +60,7 @@ build: background-check-kbs
 
 .PHONY: background-check-kbs
 background-check-kbs:
-	$(CARGO_ENV) cargo build -p kbs --locked --release --no-default-features --features $(FEATURES),$(AS_FEATURE) $(TARGET_FLAG)
+	$(CARGO_ENV) cargo build -p kbs --release --no-default-features --features $(FEATURES),$(AS_FEATURE) $(TARGET_FLAG)
 
 .PHONY: passport-issuer-kbs
 passport-issuer-kbs:

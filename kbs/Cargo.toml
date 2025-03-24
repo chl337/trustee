@@ -8,6 +8,8 @@ edition.workspace = true
 
 [features]
 default = ["coco-as-builtin", "coco-as-grpc", "intel-trust-authority-as"]
+# Backend secure connection
+tls = []
 
 # Support a backend attestation service for KBS
 as = []
@@ -35,7 +37,9 @@ pkcs11 = ["cryptoki"]
 
 [dependencies]
 actix = "0.13.5"
-actix-web = { workspace = true, features = ["openssl"] }
+actix-web = { workspace = true, features = ["rustls"] }
+rustls-pemfile = {version = "1.0"}
+rustls = {version = "0.20.0" }
 actix-web-httpauth.workspace = true
 aes-gcm = "0.10.1"
 anyhow.workspace = true

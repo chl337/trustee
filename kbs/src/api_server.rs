@@ -116,10 +116,20 @@ impl ApiServer {
         });
 
         if !http_config.insecure_http {
+            #[cfg(not(feature = "tls"))]
             let tls_server = http_server
                 .bind_openssl(
                     &http_config.sockets[..],
                     crate::http::tls_config(&http_config)
+                        .map_err(|e| Error::HTTPSFailed { source: e })?,
+                )
+                .map_err(|e| Error::HTTPSFailed { source: e.into() })?;
+
+            #[cfg(feature = "tls")]
+            let tls_server = http_server
+                .bind_rustls(
+                    &http_config.sockets[..],
+                    crate::http::tls_config_rustls(&http_config)
                         .map_err(|e| Error::HTTPSFailed { source: e })?,
                 )
                 .map_err(|e| Error::HTTPSFailed { source: e.into() })?;

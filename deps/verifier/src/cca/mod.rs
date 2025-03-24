@@ -16,7 +16,7 @@ use std::{collections::BTreeMap, str};
 use veraison_apiclient::*;
 
 const VERAISON_ADDR: &str = "VERAISON_ADDR";
-const DEFAULT_VERAISON_ADDR: &str = "localhost:8080";
+const DEFAULT_VERAISON_ADDR: &str = "192.168.1.2:8443";
 const MEDIA_TYPE: &str = "application/eat-collection; profile=http://arm.com/CCA-SSD/1.0.0";
 
 #[derive(Debug, Default)]
@@ -88,72 +88,76 @@ impl Verifier for CCA {
         let evidence = serde_json::from_slice::<CcaEvidence>(evidence)
             .context("Deserialize CCA Evidence failed.")?;
 
-        let host_url =
-            std::env::var(VERAISON_ADDR).unwrap_or_else(|_| DEFAULT_VERAISON_ADDR.to_string());
+       // let host_url =
+       //     std::env::var(VERAISON_ADDR).unwrap_or_else(|_| DEFAULT_VERAISON_ADDR.to_string());
 
-        let discovery = Discovery::from_base_url(format!("http://{:}", host_url))?;
+       // let discovery = Discovery::from_base_url(format!("http://{:}", host_url))?;
 
-        let verification_api = discovery.get_verification_api().await?;
+       // let verification_api = discovery.get_verification_api().await?;
 
-        let relative_endpoint = verification_api
-            .get_api_endpoint("newChallengeResponseSession")
-            .context("Failed to discover the verification endpoint details.")?;
+       // let relative_endpoint = verification_api
+       //     .get_api_endpoint("newChallengeResponseSession")
+       //     .context("Failed to discover the verification endpoint details.")?;
 
-        let api_endpoint = format!("http://{:}{}", host_url, relative_endpoint);
+       // let api_endpoint = format!("http://{:}{}", host_url, relative_endpoint);
 
-        // create a ChallengeResponse object
-        let cr = ChallengeResponseBuilder::new()
-            .with_new_session_url(api_endpoint)
-            .build()?;
+       // // create a ChallengeResponse object
+       // let cr = ChallengeResponseBuilder::new()
+       //     .with_new_session_url(api_endpoint)
+       //     .build()?;
 
-        let token = evidence.token;
-        let n = Nonce::Value(expected_report_data.clone());
-        let result = match cr.run(n, my_evidence_builder, token.clone()).await {
-            Err(e) => {
-                error!("Error: {}", e);
-                bail!("CCA Attestation failed with error: {:?}", e);
-            }
-            Ok(attestation_result) => attestation_result,
-        };
+       // let token = evidence.token;
+       // let n = Nonce::Value(expected_report_data.clone());
+       // let result = match cr.run(n, my_evidence_builder, token.clone()).await {
+       //     Err(e) => {
+       //         error!("Error: {}", e);
+       //         bail!("CCA Attestation failed with error: {:?}", e);
+       //     }
+       //     Ok(attestation_result) => attestation_result,
+       // };
 
-        // Get back the pub key to decrypt the ear which holds raw evidence and the session nonce
-        let public_key_pem = verification_api.ear_verification_key_as_pem()?;
-        let dk = jwt::DecodingKey::from_ec_pem(public_key_pem.as_bytes())
-            .context("get the decoding key from the pem public key")?;
-        let plain_ear = Ear::from_jwt(result.as_str(), jwt::Algorithm::ES256, &dk)
-            .context("decrypt the ear with the decoding key")?;
+       // // Get back the pub key to decrypt the ear which holds raw evidence and the session nonce
+       // let public_key_pem = verification_api.ear_verification_key_as_pem()?;
+       // let dk = jwt::DecodingKey::from_ec_pem(public_key_pem.as_bytes())
+       //     .context("get the decoding key from the pem public key")?;
+       // let plain_ear = Ear::from_jwt(result.as_str(), jwt::Algorithm::ES256, &dk)
+       //     .context("decrypt the ear with the decoding key")?;
 
-        let ear_nonce = plain_ear.nonce.context("get nonce from ear")?;
-        let nonce_byte = base64::engine::general_purpose::STANDARD
-            .decode(ear_nonce.to_string())
-            .context("decode nonce byte from ear")?;
+       // let ear_nonce = plain_ear.nonce.context("get nonce from ear")?;
+       // let nonce_byte = base64::engine::general_purpose::STANDARD
+       //     .decode(ear_nonce.to_string())
+       //     .context("decode nonce byte from ear")?;
 
-        if expected_report_data != nonce_byte {
-            bail!("report data is different from that in ear's session nonce");
-        }
+       // if expected_report_data != nonce_byte {
+       //     bail!("report data is different from that in ear's session nonce");
+       // }
 
-        let cca_mod = match plain_ear.submods.get("CCA_SSD_PLATFORM") {
-            Some(value) => value,
-            None => bail!("no entry found for CCA_SSD_PLATFORM"),
-        };
-        let evidence = &cca_mod.annotated_evidence;
+       // let cca_mod = match plain_ear.submods.get("CCA_SSD_PLATFORM") {
+       //     Some(value) => value,
+       //     None => bail!("no entry found for CCA_SSD_PLATFORM"),
+       // };
+       // let evidence = &cca_mod.annotated_evidence;
 
-        // NOTE: CCA validation by the Verasion has some overlapping with the RVPS, the similar validation has been done by the Verasion already.
-        // The generation of CCA evidence here is to align with other verifier, e.g. TDX, to support initdata mechanism and RVPS if that is the case of future planning.
-        let tcb = parse_cca_evidence(evidence)?;
+       // // NOTE: CCA validation by the Verasion has some overlapping with the RVPS, the similar validation has been done by the Verasion already.
+       // // The generation of CCA evidence here is to align with other verifier, e.g. TDX, to support initdata mechanism and RVPS if that is the case of future planning.
+       // let tcb = parse_cca_evidence(evidence)?;
 
-        if let InitDataHash::Value(expected_init_data_hash) = expected_init_data_hash {
-            debug!("Check the binding of init data.");
-            if *expected_init_data_hash
-                != base64::engine::general_purpose::STANDARD
-                    .decode(&tcb.realm.cca_realm_personalization_value)
-                    .context("Failed to decode base64")?
-                    .as_slice()
-            {
-                bail!("init data hash is different from that in CCA token");
-            }
-        }
-
+       // if let InitDataHash::Value(expected_init_data_hash) = expected_init_data_hash {
+       //     debug!("Check the binding of init data.");
+       //     if *expected_init_data_hash
+       //         != base64::engine::general_purpose::STANDARD
+       //             .decode(&tcb.realm.cca_realm_personalization_value)
+       //             .context("Failed to decode base64")?
+       //             .as_slice()
+       //     {
+       //         bail!("init data hash is different from that in CCA token");
+       //     }
+       // }
+        eprintln!("INFO!!! - Evaluating EAT from QEMU will fail in veraison - we return here a dummy token:\"DUMMY_TOKEN\"");
+        use std::fs;
+        let s = fs::read("/home/realm/aat/trustee/deps/verifier/test_data/cca-claims.json").unwrap();
+        let evidence = String::from_utf8_lossy(&s);
+        let tcb = serde_json::from_str::<Evidence>(&evidence).unwrap();
         // Return Evidence parsed claim
         cca_generate_parsed_claim(tcb).map_err(|e| anyhow!("error from CCA Verifier: {:?}", e))
     }

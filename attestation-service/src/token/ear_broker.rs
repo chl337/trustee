@@ -430,6 +430,9 @@ pub fn transform_claims(
                 serde_json::from_str(&serde_json::to_string(&runtime_data_claims)?)?;
             output_claims.insert("runtime_data_claims".to_string(), transformed_claims);
         }
+        let transformed_claims: RawValue =
+            serde_json::from_str(&serde_json::to_string(&runtime_data_claims)?)?;
+        output_claims.insert("runtime_data_claims".to_string(), transformed_claims);
     }
 
     let transformed_claims: RawValue =

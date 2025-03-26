@@ -37,8 +37,8 @@ RUN if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-s
 #WORKDIR /usr/src/kbs
 #COPY . .
 
-RUN git clone -b internal_main https://github.com/chl337/trustee.git && cd trustee/kbs && make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} ARCH="${ARCH}" background-check-kbs && \
-    make ARCH="${ARCH}" install-kbs
+RUN git clone -b internal_main https://github.com/chl337/trustee.git && cd trustee/kbs && make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} background-check-kbs && \
+    make install-kbs
 
 FROM ubuntu:22.04
 ARG ARCH=$(uname -m)

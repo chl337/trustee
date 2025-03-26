@@ -1,6 +1,5 @@
-FROM --platform=$BUILDPLATFORM rust:slim AS builder
-ARG BUILDPLATFORM=linux/amd64
-ARG ARCH=x86_64
+FROM rust:slim AS builder
+ARG ARCH=$(uname -m)
 ARG ALIYUN=false
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -35,14 +34,14 @@ RUN if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-s
     libtdx-attest-dev; fi
 
 # Build and Install KBS
-WORKDIR /usr/src/kbs
-COPY . .
+#WORKDIR /usr/src/kbs
+#COPY . .
 
-RUN cd kbs && make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} ARCH=${ARCH} && \
+RUN git clone -b internal_main git@github.com:chl337/trustee.git && cd trustee/kbs && make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} ARCH=${ARCH} background-check-kbs && \
     make ARCH=${ARCH} install-kbs
 
 FROM ubuntu:22.04
-ARG ARCH=x86_64
+ARG ARCH=$(uname -m)
 
 WORKDIR /tmp
 
@@ -64,3 +63,5 @@ RUN apt-get update && \
     rm -rf /tmp/*
 
 COPY --from=builder /usr/local/bin/kbs /usr/local/bin/kbs
+CMD /usr/local/bin/kbs --config-file config/kbs-config.toml \
+        --private-key /opt/kbs/cert/private.pem --certificate /opt/kbs/cert/cert.pem

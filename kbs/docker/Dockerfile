@@ -1,6 +1,4 @@
-FROM --platform=$BUILDPLATFORM rust:slim AS builder
-ARG BUILDPLATFORM=linux/amd64
-ARG ARCH=x86_64
+FROM rust:slim AS builder
 ARG ALIYUN=false
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -13,7 +11,7 @@ RUN apt-get update && \
     git \
     sudo
 
-RUN if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | \
+RUN ARCH=$(uname -m) && if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | \
     gpg --dearmor --output /usr/share/keyrings/intel-sgx.gpg && \
     echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/intel-sgx.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main' | \
     tee /etc/apt/sources.list.d/intel-sgx.list; fi && \
@@ -32,35 +30,22 @@ RUN if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-s
     libtss2-dev && \
     if [ "${ARCH}" = "x86_64" ]; then apt-get install -y --no-install-recommends \
     libsgx-dcap-quote-verify-dev \
-    libtdx-attest-dev; fi
-
-# Build and Install KBS
-WORKDIR /usr/src/kbs
-COPY . .
-
-RUN cd kbs && make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} ARCH=${ARCH} && \
-    make ARCH=${ARCH} install-kbs
-
-FROM ubuntu:22.04
-ARG ARCH=x86_64
-
-WORKDIR /tmp
-
-RUN apt-get update && \
-    apt-get install -y \
-    curl \
-    gnupg-agent && \
-    if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | \
-    gpg --dearmor --output /usr/share/keyrings/intel-sgx.gpg && \
-    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/intel-sgx.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main' | tee /etc/apt/sources.list.d/intel-sgx.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
     libsgx-dcap-default-qpl \
     libsgx-dcap-quote-verify \
     libtss2-tctildr0 \
-    libtss2-esys-3.0.2-0 ; \
-    fi && \
-    apt clean all && \
-    rm -rf /tmp/*
+    libtss2-esys-3.0.2-0 \
+    libtdx-attest-dev ; fi
 
-COPY --from=builder /usr/local/bin/kbs /usr/local/bin/kbs
+# Build and Install KBS
+WORKDIR /home
+
+RUN git clone -b internal_main https://github.com/chl337/trustee.git \
+        && cd trustee/kbs && \
+        make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} background-check-kbs && \
+        make install-kbs
+RUN mkdir -p /opt/kbs/config && \
+	openssl genpkey -algorithm ed25519 -out /opt/kbs/config/private.pem && \
+	openssl req -x509 -new -key /opt/kbs/config/private.pem -days 365 \
+	-out /opt/kbs/config/cert.pem -nodes -subj "/CN=localhost"
+
+CMD /usr/local/bin/kbs --config-file /home/trustee/kbs/config/kbs-config.toml

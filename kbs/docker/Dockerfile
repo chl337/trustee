@@ -1,5 +1,4 @@
 FROM rust:slim AS builder
-ARG ARCH=$(uname -m)
 ARG ALIYUN=false
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -12,7 +11,7 @@ RUN apt-get update && \
     git \
     sudo
 
-RUN if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | \
+RUN ARCH=$(uname -m) && if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | \
     gpg --dearmor --output /usr/share/keyrings/intel-sgx.gpg && \
     echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/intel-sgx.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main' | \
     tee /etc/apt/sources.list.d/intel-sgx.list; fi && \
@@ -34,8 +33,8 @@ RUN if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-s
     libsgx-dcap-default-qpl \
     libsgx-dcap-quote-verify \
     libtss2-tctildr0 \
-    libtss2-esys-3.0.2-0 ; \
-    libtdx-attest-dev; fi
+    libtss2-esys-3.0.2-0 \
+    libtdx-attest-dev ; fi
 
 # Build and Install KBS
 #WORKDIR /usr/src/kbs

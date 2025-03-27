@@ -38,7 +38,6 @@ RUN ARCH=$(uname -m) && if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://dow
 
 # Build and Install KBS
 WORKDIR /home
-COPY . .
 
 RUN git clone -b internal_main https://github.com/chl337/trustee.git \
         && cd trustee/kbs && \

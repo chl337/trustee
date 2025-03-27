@@ -37,39 +37,12 @@ RUN ARCH=$(uname -m) && if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://dow
     libtdx-attest-dev ; fi
 
 # Build and Install KBS
-#WORKDIR /usr/src/kbs
-#COPY . .
+WORKDIR /home
+COPY . .
 
-RUN git clone -b internal_main https://github.com/chl337/trustee.git
-#&& cd trustee/kbs && \
-#        make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} background-check-kbs && \
-#        make install-kbs
+RUN git clone -b internal_main https://github.com/chl337/trustee.git \
+        && cd trustee/kbs && \
+        make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} background-check-kbs && \
+        make install-kbs
 
-CMD /bin/bash
-
-#FROM ubuntu:22.04
-#ARG ARCH=$(uname -m)
-#
-#WORKDIR /tmp
-#
-#RUN apt-get update && \
-#    apt-get install -y \
-#    curl \
-#    gnupg-agent && \
-#    if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | \
-#    gpg --dearmor --output /usr/share/keyrings/intel-sgx.gpg && \
-#    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/intel-sgx.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main' | \
-#    tee /etc/apt/sources.list.d/intel-sgx.list && \
-#    apt-get update && \
-#    apt-get install -y --no-install-recommends \
-#    libsgx-dcap-default-qpl \
-#    libsgx-dcap-quote-verify \
-#    libtss2-tctildr0 \
-#    libtss2-esys-3.0.2-0 ; \
-#    fi && \
-#    apt clean all && \
-#    rm -rf /tmp/*
-#
-#COPY --from=builder /usr/local/bin/kbs /usr/local/bin/kbs
-#CMD /usr/local/bin/kbs --config-file config/kbs-config.toml \
-#        --private-key /opt/kbs/cert/private.pem --certificate /opt/kbs/cert/cert.pem
+CMD /usr/local/bin/kbs --config-file /home/trustee/kbs/config/kbs-config.toml

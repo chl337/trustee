@@ -1,8 +1,11 @@
 [http_server]
-insecure_http = true
+sockets = ["0.0.0.0:8080"]
+insecure_http = false
+private_key = "/opt/kbs/config/private.pem"
+certificate = "/opt/kbs/config/cert.pem"
 
 [attestation_token]
-insecure_api = true
+insecure_key = true
 
 [attestation_service]
 type = "coco_as_builtin"

@@ -243,6 +243,8 @@ fn build_http_client(kbs_root_certs_pem: Vec<String>) -> Result<reqwest::Client>
     }
 
     client_builder
+        .use_rustls_tls()
+        .danger_accept_invalid_certs(true)
         .build()
         .map_err(|e| anyhow!("Build KBS http client failed: {:?}", e))
 }

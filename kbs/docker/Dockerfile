@@ -39,9 +39,9 @@ RUN ARCH=$(uname -m) && if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://dow
 # Build and Install KBS
 WORKDIR /home
 
-RUN git clone -b internal_main https://github.com/chl337/trustee.git \
+RUN git clone -b internal_main_debug https://github.com/chl337/trustee.git \
         && cd trustee/kbs && \
-        make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} background-check-kbs && \
+        make AS_FEATURE=intel-trust-authority-as ALIYUN=${ALIYUN} background-check-kbs && \
         make install-kbs-debug
 RUN mkdir -p /opt/kbs/config && \
 	openssl genpkey -algorithm ed25519 -out /opt/kbs/config/private.pem && \

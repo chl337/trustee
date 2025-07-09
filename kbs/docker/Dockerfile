@@ -9,7 +9,11 @@ RUN apt-get update && \
     gpg \
     gnupg-agent \
     git \
-    sudo
+    sudo \
+    vim \
+    iproute2 \
+    vim \
+    tcpdump
 
 RUN ARCH=$(uname -m) && if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | \
     gpg --dearmor --output /usr/share/keyrings/intel-sgx.gpg && \
@@ -39,13 +43,13 @@ RUN ARCH=$(uname -m) && if [ "${ARCH}" = "x86_64" ]; then curl -fsSL https://dow
 # Build and Install KBS
 WORKDIR /home
 
-RUN git clone -b internal_main https://github.com/chl337/trustee.git \
+RUN git clone -b internal_main_debug https://github.com/chl337/trustee.git \
         && cd trustee/kbs && \
         make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} background-check-kbs && \
-        make install-kbs
+        make install-kbs-debug
 RUN mkdir -p /opt/kbs/config && \
 	openssl genpkey -algorithm ed25519 -out /opt/kbs/config/private.pem && \
 	openssl req -x509 -new -key /opt/kbs/config/private.pem -days 365 \
 	-out /opt/kbs/config/cert.pem -nodes -subj "/CN=localhost"
 
-CMD /usr/local/bin/kbs --config-file /home/trustee/kbs/config/kbs-config.toml
+CMD echo "Run gdb --args /usr/local/bin/kbs --config-file /home/trustee/kbs/config/kbs-config.toml" && /usr/bin/bash

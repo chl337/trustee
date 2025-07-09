@@ -5,7 +5,7 @@ PREFIX := /usr/local
 TARGET_DIR := ../target
 BIN_NAMES := grpc-as restful-as
 
-DEBUG ?=
+DEBUG ?= 1
 DESTDIR ?= $(PREFIX)/bin
 
 VERIFIER ?= all-verifier

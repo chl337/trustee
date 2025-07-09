@@ -42,10 +42,10 @@ WORKDIR /home
 RUN git clone -b internal_main https://github.com/chl337/trustee.git \
         && cd trustee/kbs && \
         make AS_FEATURE=coco-as-builtin ALIYUN=${ALIYUN} background-check-kbs && \
-        make install-kbs
+        make install-kbs-debug
 RUN mkdir -p /opt/kbs/config && \
 	openssl genpkey -algorithm ed25519 -out /opt/kbs/config/private.pem && \
 	openssl req -x509 -new -key /opt/kbs/config/private.pem -days 365 \
 	-out /opt/kbs/config/cert.pem -nodes -subj "/CN=localhost"
 
-CMD /usr/local/bin/kbs --config-file /home/trustee/kbs/config/kbs-config.toml
+CMD echo "Run /usr/local/bin/kbs --config-file /home/trustee/kbs/config/kbs-config.toml" && /usr/bin/bash

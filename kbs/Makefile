@@ -9,6 +9,7 @@ ifeq ($(filter $(ARCH),x86_64 s390x aarch64),)
 endif
 
 RELEASE_DIR := ../target/release
+DEBUG_DIR := ../target/debug
 TARGET_FLAG :=
 CARGO_ENV :=
 ifneq ($(BUILD_ARCH), $(ARCH))
@@ -21,6 +22,7 @@ ifneq ($(BUILD_ARCH), $(ARCH))
     RUSTFLAGS_ARGS := -C linker=$(GCC_COMPILER)
     TARGET_FLAG := --target $(RUSTC_TARGET)
     RELEASE_DIR := ../target/$(RUSTC_TARGET)/release
+    DEBUG_DIR := ../target/$(RUSTC_TARGET)/debug
     OS_ARCH := $(ARCH)
     OS_ARCH := $(OS_ARCH:x86_64=amd64)
     OS_ARCH := $(OS_ARCH:aarch64=arm64)
@@ -60,7 +62,7 @@ build: background-check-kbs
 
 .PHONY: background-check-kbs
 background-check-kbs:
-	$(CARGO_ENV) cargo build -p kbs --release --no-default-features --features $(FEATURES),$(AS_FEATURE) $(TARGET_FLAG)
+	$(CARGO_ENV) cargo build -p kbs --no-default-features --features $(FEATURES),$(AS_FEATURE) $(TARGET_FLAG)
 
 .PHONY: passport-issuer-kbs
 passport-issuer-kbs:
@@ -89,6 +91,8 @@ cli-static-linux:
 
 install-kbs:
 	install -D -m0755 $(RELEASE_DIR)/kbs $(INSTALL_DESTDIR)
+install-kbs-debug:
+	install -D -m0755 $(DEBUG_DIR)/kbs $(INSTALL_DESTDIR)
 
 install-issuer-kbs:
 	install -D -m0755 $(RELEASE_DIR)/issuer-kbs $(INSTALL_DESTDIR)

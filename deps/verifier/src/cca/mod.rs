@@ -155,7 +155,7 @@ impl Verifier for CCA {
        // }
         eprintln!("INFO!!! - Evaluating EAT from QEMU will fail in veraison - we return here a dummy token:\"DUMMY_TOKEN\"");
         use std::fs;
-        let s = fs::read("/home/realm/aat/trustee/deps/verifier/test_data/cca-claims.json").unwrap();
+        let s = fs::read("/home/cca-claims.json").unwrap();
         let evidence = String::from_utf8_lossy(&s);
         let tcb = serde_json::from_str::<Evidence>(&evidence).unwrap();
         // Return Evidence parsed claim
